@@ -16,7 +16,9 @@ Template.hello.helpers({
 
 Template.hello.events({
   'click button'(event, instance) {
-    Meteor.call('testMethod');
+    Meteor.subscribe('board', () => {
+      console.log(Meteor.collection('ascii').find().fetch());
+    });
     instance.counter.set(instance.counter.get() + 1);
   },
 });
