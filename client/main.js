@@ -17,7 +17,7 @@ Template.hello.helpers({
 Template.hello.events({
   'click button'(event, instance) {
     Meteor.subscribe('board', () => {
-      console.log(Meteor.collection('ascii').find().fetch());
+      console.log(new Mongo.Collection('moves').find().fetch());
     });
     instance.counter.set(instance.counter.get() + 1);
   },
