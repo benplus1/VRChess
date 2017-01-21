@@ -1,1 +1,1 @@
-# VRChess
+# VR Chess
