@@ -16,7 +16,7 @@ Template.hello.helpers({
 
 Template.hello.events({
   'click button'(event, instance) {
-    // increment the counter when button is clicked
+    Meteor.call('testMethod');
     instance.counter.set(instance.counter.get() + 1);
   },
 });
