@@ -1,5 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import validMoves from '../startup/board';
 
 var Chess = require('chess').Chess;
 var chess = new Chess();

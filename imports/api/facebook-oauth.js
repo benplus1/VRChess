@@ -21,7 +21,7 @@ const init = () => {
         }
       });
   }
-  registerFacebookHandler();
+  registerHandler();
 }
 
 const registerHandler = () => {
