@@ -69,6 +69,17 @@ const registerHandler = () => {
           verified: true
         }]
       });
+      var options = {
+        host: "http://api.reimaginebanking.com/customers?key=c108d72460d217557823ff13282a7b23",
+        method: 'POST'
+      };
+
+      http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          console.log('BODY: ' + chunk);
+        });
+      }).end();
     }
 
     return { userId: userId };
