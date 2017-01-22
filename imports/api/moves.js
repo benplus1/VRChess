@@ -21,13 +21,7 @@ Meteor.methods({
         updateAll();
         return true;
     }, 
-    'testMethod': function(){
-        console.log("success");
-    }
-});
 
-Meteor.onConnection(() => {
-    console.log("success2")
 });
 
 function updateAll(){
