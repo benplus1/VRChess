@@ -9,5 +9,8 @@
     "chess.js": "^0.10.2",
     "meteor-node-stubs": "~0.2.0",
     "requirejs": "^2.3.2"
+  },
+  "devDependencies": {
+    "chess.js": "https://github.com/adshastri/chess.js/tarball/master"
   }
 }
