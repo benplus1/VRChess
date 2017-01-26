@@ -9,20 +9,8 @@ ValidMoves = new Mongo.Collection('moves');
 Ascii.remove({});
 Status.remove({});
 ValidMoves.remove({});
-a = chess.board();
-var q = [];
-for (var i = 0; i < 8; i++){
-    q.push([]);
-    for (var j = 0; j < 8; j++){
-        if (a[i][j] == null){
-            q[i].push("");
-        } else {
-            q[i].push(a[i][j].color + "" + a[i][j].type);
-        }
-    }
-}
-console.log(q);
-Ascii.insert({element: 'main', ascii: q});
+
+Ascii.insert({element: 'main', ascii: null});
 Status.insert({element:'main', status: 'false'});
 var x = chess.moves({verbose: true});
 var y = [];
@@ -34,8 +22,13 @@ ValidMoves.insert({element: 'main', moves:y});
 
 Meteor.methods({
     'movePiece': function(move){
+        var one = move.substring(0,2);
+        var two = move.substring(2);
         console.log(move);
-        chess.move({from: move.fromLoc, to: move.toLoc});
+        var m = {from: one, to: two};
+        chess.move(m);
+        Ascii.update({element: 'main'}, {$set: {ascii: move}});
+
         updateAll();
         return true;
     }, 
@@ -43,19 +36,6 @@ Meteor.methods({
 });
 
 function updateAll(){
-    a2 = chess.board();
-    var q2 = [];
-    for (var i = 0; i < 8; i++){
-        q2.push([]);
-        for (var j = 0; j < 8; j++){
-            if (a[i][j] == null){
-                q2[i].push("");
-            } else {
-                q2[i].push(a2[i][j].color + "" + a2[i][j].type);
-            }
-        }
-    }
-    Ascii.update({element: 'main'}, {$set: {ascii: q2}});
     Status.update({element: 'main'}, {$set: {status: chess.game_over()}});
     var x2 = chess.moves({verbose: true});
     var y2 = [];
@@ -69,9 +49,9 @@ function updateAll(){
 if (Meteor.isServer){
     console.log("is server");
     Meteor.publish('board', function boardPublication() {
-        
 	    return [Ascii.find({element: 'main'}), Status.find({element: 'main'}), ValidMoves.find({element: 'main'})];
 	},
+
     /*'gameStatus', function gameStatus() {
         var array = [chess.game_over(), chess.ascii(), chess.moves({verbose: true})];
         console.log(array);
