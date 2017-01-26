@@ -28,7 +28,7 @@ Meteor.methods({
         var m = {from: one, to: two};
         chess.move(m);
         Ascii.update({element: 'main'}, {$set: {ascii: move}});
-
+	console.log(chess.ascii());
         updateAll();
         return true;
     }, 
