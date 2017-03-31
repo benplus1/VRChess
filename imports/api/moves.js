@@ -1,64 +1,91 @@
 import { Meteor } from 'meteor/meteor';
+import settings from '../../settings.json';
 
 var Chess = require('chess').Chess;
-var chess = new Chess();
 
-Ascii = new Mongo.Collection('ascii');
-Status = new Mongo.Collection('status');
-ValidMoves = new Mongo.Collection('moves');
-Ascii.remove({});
-Status.remove({});
-ValidMoves.remove({});
+Games = new Mongo.Collection('games');
+Users = Meteor.users;
 
-Ascii.insert({element: 'main', ascii: null});
-Status.insert({element:'main', status: 'false'});
-var x = chess.moves({verbose: true});
-var y = [];
-for (var i = 0; i < x.length; i++){
-    z = x[i].color + "" + x[i].from + "" + x[i].to;
-    y.push(z);
+export const  movesInit = () => {
+  Games.remove({});
+  Users.remove({});
+
 }
-ValidMoves.insert({element: 'main', moves:y});
+
+Meteor.onConnection((connection) => {
+    console.log("connection recieved");
+});
 
 Meteor.methods({
-    'movePiece': function(move){
+    readyToPlay: function(){
+      var length = Users.find().fetch().length;
+      var _id = Users.insert({number: length + 1});
+      checkUserAvailability();
+      return _id;
+    },
+    'movePiece': function(move, userId){
         var one = move.substring(0,2);
         var two = move.substring(2);
         console.log(move);
         var m = {from: one, to: two};
-        chess.move(m);
-        Ascii.update({element: 'main'}, {$set: {ascii: move}});
-	console.log(chess.ascii());
-        updateAll();
-        return true;
-    }, 
-
+        chessObj = Games.find({$or: [{player1: userId}, {player2: userId}]}).fetch().chessObj;
+        chessObj.move(m);
+        var x = chessObj.moves({verbose: true});
+        var y = [];
+        for (var i = 0; i < x.length; i++){
+          z = x[i].color + "" + x[i].from + "" + x[i].to;
+          y.push(z);
+        }
+        if (chessObj.game_over()){
+          Games.remove({$or: [{player1: userId}, {player2: userId}]});
+        } else {
+          Games.update(
+            {$or: [{player1: userId}, {player2: userId}]},
+            {$set: {
+                    ascii: chessObj.ascii(),
+                    latestMove: move,
+                    validMoves: y,
+                    status: chessObj.game_over()
+                  },
+            },
+            $inc: {turn: 1}
+          );
+        }
+    },
 });
 
-function updateAll(){
-    Status.update({element: 'main'}, {$set: {status: chess.game_over()}});
-    var x2 = chess.moves({verbose: true});
-    var y2 = [];
-    for (var i = 0; i < x.length; i++){
-        z2 = x[i].color + "" + x[i].from + "" + x[i].to;
-        y2.push(z2);
-    }
-    ValidMoves.update({element: 'main'}, {$set: {moves: y2}});
+function checkUserAvailability(){
+  if (Users.find().fetch().length %2 == 0){
+    createGame();
+  }
 }
 
-if (Meteor.isServer){
-    console.log("is server");
-    Meteor.publish('board', function boardPublication() {
-	    return [Ascii.find({element: 'main'}), Status.find({element: 'main'}), ValidMoves.find({element: 'main'})];
-	},
+function createGame(){
+  var length = Users.find().fetch();
+  var chessObj = new Chess();
+  var x = chessObj.moves({verbose: true});
+  var y = [];
+  for (var i = 0; i < x.length; i++){
+    z = x[i].color + "" + x[i].from + "" + x[i].to;
+    y.push(z);
+  }
+  Games.insert(
+    {
+      chessObject: chessObj,
+      ascii: chessObj.ascii(),
+      latestMove: null,
+      player1: Users.find().fetch()[length -2],
+      player2: Users.find().fetch()[length-1],
+      turn: 0,
+      validMoves: y,
+      status: chessObj.game_over(),
+    });
+}
 
-    /*'gameStatus', function gameStatus() {
-        var array = [chess.game_over(), chess.ascii(), chess.moves({verbose: true})];
-        console.log(array);
-        return Status.find({element: 'main'}.status);
-    },
-    'validMoves', function validMoves() {
-        console.log("ldslekwgnw");
-        return ValidMoves.find({element: 'main'}).moves;
-    }*/);
+
+  if (Meteor.isServer){
+      console.log("is server");
+      Meteor.publish('game', function gamePublication(userId) {
+  	    return Games.find({$or: [{player1: userId}, {player2: userId}]});
+  	});
 }

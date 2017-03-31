@@ -19,6 +19,8 @@ Template.hello.events({
     Meteor.subscribe('board', () => {
       console.log(new Mongo.Collection('moves').find().fetch());
     });
+    console.log(Meteor.userId());
+    Meteor.call('dummyMethod');
     instance.counter.set(instance.counter.get() + 1);
   },
 });
